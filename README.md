@@ -1,2 +1,2 @@
-# Latent-Diffusion-Segmentation
-Repo for Latent Diffusion Segmentation
+# UNET Medical Segmentation
+Repo for UNET Medical Segmentation
