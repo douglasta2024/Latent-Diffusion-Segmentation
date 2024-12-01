@@ -5,3 +5,5 @@ prometheus_client==0.21.0
 pytorch_ignite==0.5.1
 streamlit==1.40.2
 torch==2.3.1
+boto3==1.35.71
+
