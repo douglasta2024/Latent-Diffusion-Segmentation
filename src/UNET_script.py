@@ -16,11 +16,12 @@ from ignite.engine import Events, Engine
 from ignite.metrics import Recall, Precision
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+import matplotlib.animation as animation
 import boto3
 from io import BytesIO
 import nibabel as nb
 from torch import from_numpy
-
+import tempfile
 
 def generate_output():
     ### GLOBAL VARIABLES
@@ -197,17 +198,32 @@ def generate_output():
         ani = FuncAnimation(fig, update, frames=image.shape[0], interval=300, blit=True)    
         
         # saving gif to bucket
-        file_name = f"mask{idx}"
-        s3.upload_fileobj(ani, bucket_name, file_name)
-        print(f"Uploaded {file_name}")
+        # file_name = f"mask{idx}.gif"
+        # s3.upload_fileobj(ani, bucket_name, file_name)
+        # print(f"Uploaded {file_name}")
+        return ani
 
     print("Initiating GIF Generation")
     masks = [mask, ground_truth, mask2, ground_truth2]
+    gifs = []
     for idx, img in enumerate(masks):
-        gif_generator(img, idx)
+        ani = gif_generator(img, idx)
+        
+        # saving animation to temp file
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".gif") as temp_file:
+            writer = animation.PillowWriter()
+            ani.save(temp_file.name, writer=writer)
+
+            # reading file into byteio
+            temp_file.seek(0)
+            gif_buffer = BytesIO(temp_file.read())
+            #gif = base64.b64encode(gif_buffer().decode("ascii"))
+            gifs.append(gif_buffer)
+        os.remove(temp_file.name)
+        print(f"Mask {idx} Initialized")
         #ani.save(os.path.join(ROOT_PATH, f"saved_gifs/mask{idx}.gif"), writer="pillow")
 
 
-    return mean_dice_score, recall, precision
+    return mean_dice_score, recall, precision, gifs
 
 
