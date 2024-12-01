@@ -17,6 +17,7 @@ if len(input) > 1:
     aws_secret_access_key = st.secrets["general"]["aws_secret_access_key"]
 
     # saves images to s3 bucket
+    print("Connecting to Client")
     s3 = boto3.client(
         service_name='s3',
         region_name='us-east-2',
@@ -26,7 +27,7 @@ if len(input) > 1:
     bucket_name = "ct-scans--use2-az1--x-s3"
     for img in input:
         file_name = img.name
-        #s3.upload_fileobj(img, bucket_name, file_name)
+        s3.upload_fileobj(img, bucket_name, file_name)
         st.success(f"Successfully Uploaded {file_name} into S3 Bucket")
 
     
