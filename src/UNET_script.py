@@ -1,6 +1,5 @@
 import os
 import torch
-import nibabel as nb
 from monai.networks.nets import UNet
 from monai.data import ArrayDataset, DataLoader
 from monai.metrics import DiceMetric
@@ -9,14 +8,19 @@ from monai.transforms import (
     Compose,
     RandSpatialCrop,
     LoadImage,
+    EnsureChannelFirst,
     ScaleIntensityRange,
     Orientation,
 )
-import ignite
 from ignite.engine import Events, Engine
 from ignite.metrics import Recall, Precision
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+import boto3
+from io import BytesIO
+import nibabel as nb
+from torch import from_numpy
+
 
 def generate_output():
     ### GLOBAL VARIABLES
@@ -37,9 +41,38 @@ def generate_output():
     ### loading model weights onto model
     model.load_state_dict(model_weights)
 
-    # list of paths to CT scans
-    imgs = [os.path.join(DATA_PATH, "volume-20.nii"), os.path.join(DATA_PATH, "volume-25.nii")]
-    segs = [os.path.join(DATA_PATH, "new-segmentation-20.nii"), os.path.join(DATA_PATH, "new-segmentation-25.nii")]
+    s3 = boto3.client(
+        service_name='s3',
+        region_name='us-east-2',
+        aws_access_key_id='AKIAUQ4L3FBTESMORT75',
+        aws_secret_access_key='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',
+    )
+    bucket_name = "ct-scans--use2-az1--x-s3"
+    imgs = []
+    segs = []
+    response = s3.list_objects_v2(Bucket=bucket_name)
+    if 'Contents' in response:
+        for obj in response['Contents']:
+            file_name = obj['Key']
+            single_response = s3.get_object(Bucket=bucket_name, Key=file_name)
+            nifti_bytes = single_response['Body'].read()
+
+            # Create a BytesIO object from the bytes
+            nifti_file = BytesIO(nifti_bytes)
+
+            # Use FileHolder and from_file_map to load the NIfTI file
+            file_map = nb.FileHolder(fileobj=nifti_file)
+            nifti_image = nb.Nifti1Image.from_file_map({'header': file_map, 'image': file_map})
+            img = nifti_image.get_fdata()
+            img = from_numpy(img)
+            if "volume" in file_name:
+                img = img.unsqueeze(dim=0)
+                imgs.append(img)
+            else:
+                img = img.unsqueeze(dim=0)
+                segs.append(img)
+
+        print("Images ready for testing.")
 
     # evaluation setup
     loss = DiceLoss()
@@ -98,7 +131,7 @@ def generate_output():
 
     image_transforms = Compose(
         [
-            LoadImage(image_only=True, ensure_channel_first=True),
+            #LoadImage(image_only=True, ensure_channel_first=True),\
             ScaleIntensityRange(
                 a_min=amin,
                 a_max=amax,
@@ -116,7 +149,7 @@ def generate_output():
 
     seg_transforms = Compose(
         [
-            LoadImage(image_only=True, ensure_channel_first=True),
+            #LoadImage(image_only=True, ensure_channel_first=True),
             Orientation(axcodes="RAS"),
             RandSpatialCrop(
             (512,512,160), 
@@ -124,7 +157,6 @@ def generate_output():
             ), 
         ]
     )
-
 
     test_ds = ArrayDataset(img=imgs, img_transform=image_transforms, seg=segs, seg_transform=seg_transforms)
     test_loader = DataLoader(test_ds, batch_size=1, pin_memory=torch.cuda.is_available())
