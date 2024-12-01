@@ -61,7 +61,7 @@ def generate_output(aws_access_key_id, aws_secret_access_key):
                 model_bytes = BytesIO(single_response['Body'].read())
                 #model_weights = torch.load(model_bytes, weights_only=True, map_location=DEVICE) 
                 
-                @st.cache
+                @st.cache_resource
                 def load_model():
                     model_weights = torch.load(model_bytes, weights_only=True) 
                     return model_weights
