@@ -63,6 +63,7 @@ def generate_output():
                 # loading model weights onto model
                 model.load_state_dict(model_weights) 
                 print("Model Successfully Loaded In")
+                continue
 
             single_response = s3.get_object(Bucket=bucket_name, Key=file_name)
             nifti_bytes = single_response['Body'].read()
@@ -124,10 +125,6 @@ def generate_output():
     Recall(average=True).attach(evaluator, "recall")
     Precision(average=False).attach(evaluator, "precision")
 
-    # Directory to save predictions
-    output_dir = os.path.join(ROOT_PATH, "saved_gifs")
-    os.makedirs(output_dir, exist_ok=True)
-
     @evaluator.on(Events.ITERATION_COMPLETED)
     def save_segmentation_masks(engine):
         predictions, ground_truth = engine.state.output  # Get predictions and masks from the step function
@@ -179,6 +176,11 @@ def generate_output():
     precision = evaluator.state.metrics["precision"]
     print(f"Recall: {recall} | Precision {precision}")
 
+    # Directory to save predictions
+    print("Starting GIF Generation")
+    output_dir = os.path.join(ROOT_PATH, "saved_gifs")
+    os.makedirs(output_dir, exist_ok=True)
+    
     mask = store_predictions[0][0].squeeze().T
     ground_truth = store_predictions[0][1].squeeze().T
     mask2 = store_predictions[1][0].squeeze().T
