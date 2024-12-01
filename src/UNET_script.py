@@ -57,7 +57,7 @@ def generate_output():
             #loads in model
             if "model" in file_name:
                 single_response = s3.get_object(Bucket=bucket_name, Key=file_name)
-                model_bytes = single_response['Body'].read()                
+                model_bytes = BytesIO(single_response['Body'].read())
                 model_weights = torch.load(model_bytes, weights_only=True, map_location=DEVICE)
 
                 # loading model weights onto model
