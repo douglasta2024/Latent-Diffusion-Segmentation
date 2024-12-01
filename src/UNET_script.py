@@ -20,6 +20,7 @@ from io import BytesIO
 import nibabel as nb
 from torch import from_numpy
 import tempfile
+import streamlit as st
 
 def generate_output(aws_access_key_id, aws_secret_access_key):
     ### GLOBAL VARIABLES
@@ -52,14 +53,20 @@ def generate_output(aws_access_key_id, aws_secret_access_key):
     response = s3.list_objects_v2(Bucket=bucket_name)
     if 'Contents' in response:
         for obj in response['Contents']:
-            file_name = obj['Key']
+            file_name = obj['Key']  
             
             #loads in model
             if "model" in file_name:
                 single_response = s3.get_object(Bucket=bucket_name, Key=file_name)
                 model_bytes = BytesIO(single_response['Body'].read())
                 #model_weights = torch.load(model_bytes, weights_only=True, map_location=DEVICE) 
-                model_weights = torch.load(model_bytes) 
+                
+                @st.cache
+                def load_model():
+                    model_weights = torch.load(model_bytes, weights_only=True) 
+                    return model_weights
+                
+                model_weights = load_model()
                 
 
                 # loading model weights onto model
