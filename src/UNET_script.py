@@ -24,11 +24,11 @@ from torch import from_numpy
 
 def generate_output():
     ### GLOBAL VARIABLES
-    ROOT_PATH = os.path.join(os.getcwd())
-    MODEL_PATH = os.path.join(ROOT_PATH,"src", "models", "model.pth")
+    ROOT_PATH = os.path.join(os.getcwd(), "main", "src")
     DATA_PATH = os.path.join(ROOT_PATH, "data")
-    DEVICE = torch.device("cpu")
-    model_weights = torch.load(MODEL_PATH, weights_only=True, map_location=DEVICE)
+    DEVICE = torch.device("cpu")    
+
+    # defines basemodel
     model = UNet(
         spatial_dims=3,
         in_channels=1,
@@ -36,11 +36,10 @@ def generate_output():
         channels=(16, 32, 64, 128, 256),
         strides=(2, 2, 2, 2),
         num_res_units=2,
-    ).to(DEVICE)
+    ).to(DEVICE)    
+    print("Base Model Loaded In")
 
-    ### loading model weights onto model
-    model.load_state_dict(model_weights)
-
+    # connection to S3 database
     s3 = boto3.client(
         service_name='s3',
         region_name='us-east-2',
@@ -54,6 +53,17 @@ def generate_output():
     if 'Contents' in response:
         for obj in response['Contents']:
             file_name = obj['Key']
+            
+            #loads in model
+            if "model" in file_name:
+                single_response = s3.get_object(Bucket=bucket_name, Key=file_name)
+                model_bytes = single_response['Body'].read()                
+                model_weights = torch.load(model_bytes, weights_only=True, map_location=DEVICE)
+
+                # loading model weights onto model
+                model.load_state_dict(model_weights) 
+                print("Model Successfully Loaded In")
+
             single_response = s3.get_object(Bucket=bucket_name, Key=file_name)
             nifti_bytes = single_response['Body'].read()
 
