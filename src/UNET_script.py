@@ -24,8 +24,8 @@ from torch import from_numpy
 
 def generate_output():
     ### GLOBAL VARIABLES
-    ROOT_PATH = os.path.join(os.getcwd(), "main", "src")
-    DATA_PATH = os.path.join(ROOT_PATH, "data")
+    # ROOT_PATH = os.path.join(os.getcwd(), "main", "src")
+    # DATA_PATH = os.path.join(ROOT_PATH, "data")
     DEVICE = torch.device("cpu")    
 
     # defines basemodel
@@ -175,6 +175,9 @@ def generate_output():
     recall = evaluator.state.metrics["recall"]
     precision = evaluator.state.metrics["precision"]
     print(f"Recall: {recall} | Precision {precision}")
+
+    ROOT_PATH = os.path.join(os.getcwd(), "src")
+    DATA_PATH = os.path.join(ROOT_PATH, "data")
 
     # Directory to save predictions
     print("Starting GIF Generation")
