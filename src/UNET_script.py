@@ -35,7 +35,8 @@ def generate_output(aws_access_key_id, aws_secret_access_key):
         channels=(16, 32, 64, 128, 256),
         strides=(2, 2, 2, 2),
         num_res_units=2,
-    ).to(torch.device("cpu"))    
+    #).to(DEVICE)    
+    )
     print("Base Model Loaded In")
 
     # saves images to s3 bucket
@@ -57,7 +58,9 @@ def generate_output(aws_access_key_id, aws_secret_access_key):
             if "model" in file_name:
                 single_response = s3.get_object(Bucket=bucket_name, Key=file_name)
                 model_bytes = BytesIO(single_response['Body'].read())
-                model_weights = torch.load(model_bytes, weights_only=True, map_location=torch.device("cpu")) 
+                #model_weights = torch.load(model_bytes, weights_only=True, map_location=DEVICE) 
+                model_weights = torch.load(model_bytes, weights_only=True) 
+                
 
                 # loading model weights onto model
                 model.load_state_dict(model_weights) 
@@ -94,7 +97,7 @@ def generate_output(aws_access_key_id, aws_secret_access_key):
         model.eval()
         with torch.no_grad():
             images, masks = batch
-            images, masks = images.to(torch.device("cpu")), masks.to(torch.device("cpu"))
+            #images, masks = images.to(DEVICE), masks.to(DEVICE)
 
             outputs = model(images)
 
@@ -215,7 +218,6 @@ def generate_output(aws_access_key_id, aws_secret_access_key):
             # reading file into byteio
             temp_file.seek(0)
             gif_buffer = BytesIO(temp_file.read())
-            #gif = base64.b64encode(gif_buffer().decode("ascii"))
             gifs.append(gif_buffer)
         os.remove(temp_file.name)
         print(f"Mask {idx} Initialized")
