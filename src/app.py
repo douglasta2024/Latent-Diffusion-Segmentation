@@ -1,9 +1,7 @@
 import streamlit as st
-import os
 from prometheus_client import start_http_server, Gauge
 from UNET_script import generate_output
 import boto3
-from PIL import Image
 import time
 
 
