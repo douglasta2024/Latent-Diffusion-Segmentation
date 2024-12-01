@@ -27,7 +27,6 @@ def generate_output():
     # ROOT_PATH = os.path.join(os.getcwd(), "main", "src")
     # DATA_PATH = os.path.join(ROOT_PATH, "data")
     #DEVICE = torch.device("cpu")    
-    print("Start")
 
     # defines basemodel
     model = UNet(
@@ -59,7 +58,7 @@ def generate_output():
             if "model" in file_name:
                 single_response = s3.get_object(Bucket=bucket_name, Key=file_name)
                 model_bytes = BytesIO(single_response['Body'].read())
-                model_weights = torch.load(model_bytes, weights_only=True) #map_location=DEVICE
+                model_weights = torch.load(model_bytes) #map_location=DEVICE
 
                 # loading model weights onto model
                 model.load_state_dict(model_weights) 
