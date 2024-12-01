@@ -24,7 +24,7 @@ from torch import from_numpy
 
 def generate_output():
     ### GLOBAL VARIABLES
-    ROOT_PATH = os.path.join(os.getcwd(), "main", "src")
+    ROOT_PATH = os.path.join(os.getcwd(), "src")
     MODEL_PATH = os.path.join(ROOT_PATH, "models", "model.pth")
     DATA_PATH = os.path.join(ROOT_PATH, "data")
     DEVICE = torch.device("cpu")
