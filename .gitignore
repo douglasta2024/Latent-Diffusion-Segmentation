@@ -3,4 +3,7 @@
 
 # CT scans
 *.nii
+new-segmentation-20.nii
+new-segmentation-25.nii
+
 
