@@ -25,8 +25,7 @@ from torch import from_numpy
 def generate_output():
     ### GLOBAL VARIABLES
     ROOT_PATH = os.getcwd()
-    print(ROOT_PATH)
-    MODEL_PATH = os.path.join(ROOT_PATH, "src", "models", "model.pth")
+    MODEL_PATH = os.path.join(ROOT_PATH, "main", "src", "models", "model.pth")
     DATA_PATH = os.path.join(ROOT_PATH, "data")
     DEVICE = torch.device("cpu")
     model_weights = torch.load(MODEL_PATH, weights_only=True, map_location=DEVICE)
