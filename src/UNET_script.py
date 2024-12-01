@@ -59,7 +59,7 @@ def generate_output(aws_access_key_id, aws_secret_access_key):
                 single_response = s3.get_object(Bucket=bucket_name, Key=file_name)
                 model_bytes = BytesIO(single_response['Body'].read())
                 #model_weights = torch.load(model_bytes, weights_only=True, map_location=DEVICE) 
-                model_weights = torch.load(model_bytes, weights_only=True) 
+                model_weights = torch.load(model_bytes) 
                 
 
                 # loading model weights onto model
