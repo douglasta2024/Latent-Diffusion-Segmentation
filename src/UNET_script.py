@@ -58,7 +58,7 @@ def generate_output():
             if "model" in file_name:
                 single_response = s3.get_object(Bucket=bucket_name, Key=file_name)
                 model_bytes = BytesIO(single_response['Body'].read())
-                model_weights = torch.load(model_bytes, map_location=DEVICE) 
+                model_weights = torch.load(model_bytes, weights_only=True, map_location=DEVICE) 
 
                 # loading model weights onto model
                 model.load_state_dict(model_weights) 
@@ -177,20 +177,13 @@ def generate_output():
     precision = evaluator.state.metrics["precision"]
     print(f"Recall: {recall} | Precision {precision}")
 
-    ROOT_PATH = os.path.join(os.getcwd(), "src")
-    DATA_PATH = os.path.join(ROOT_PATH, "data")
-
-    # Directory to save predictions
-    print("Starting GIF Generation")
-    output_dir = os.path.join(ROOT_PATH, "saved_gifs")
-    os.makedirs(output_dir, exist_ok=True)
-    
+    print("Starting GIF Generation")    
     mask = store_predictions[0][0].squeeze().T
     ground_truth = store_predictions[0][1].squeeze().T
     mask2 = store_predictions[1][0].squeeze().T
     ground_truth2 = store_predictions[1][1].squeeze().T
 
-    def gif_generator(image):
+    def gif_generator(image, idx):
         fig, ax = plt.subplots()
         image_slice = ax.imshow(image[0].numpy(), cmap="bone", animated=True)
 
@@ -202,13 +195,18 @@ def generate_output():
 
         # Create an animation
         ani = FuncAnimation(fig, update, frames=image.shape[0], interval=300, blit=True)    
-        return ani
+        
+        # saving gif to bucket
+        file_name = f"mask{idx}"
+        s3.upload_fileobj(ani, bucket_name, file_name)
+        print(f"Uploaded {file_name}")
 
     print("Initiating GIF Generation")
     masks = [mask, ground_truth, mask2, ground_truth2]
     for idx, img in enumerate(masks):
-        ani = gif_generator(img)
-        ani.save(os.path.join(ROOT_PATH, f"saved_gifs/mask{idx}.gif"), writer="pillow")
+        gif_generator(img, idx)
+        #ani.save(os.path.join(ROOT_PATH, f"saved_gifs/mask{idx}.gif"), writer="pillow")
+
 
     return mean_dice_score, recall, precision
 
