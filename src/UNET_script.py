@@ -21,7 +21,7 @@ import nibabel as nb
 from torch import from_numpy
 import tempfile
 
-def generate_output():
+def generate_output(aws_access_key_id, aws_secret_access_key):
     ### GLOBAL VARIABLES
     # ROOT_PATH = os.path.join(os.getcwd(), "main", "src")
     # DATA_PATH = os.path.join(ROOT_PATH, "data")
@@ -38,12 +38,12 @@ def generate_output():
     ).to(DEVICE)    
     print("Base Model Loaded In")
 
-    # connection to S3 database
+    # saves images to s3 bucket
     s3 = boto3.client(
         service_name='s3',
         region_name='us-east-2',
-        aws_access_key_id='AKIAUQ4L3FBTESMORT75',
-        aws_secret_access_key='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',
+        aws_access_key_id=aws_access_key_id,
+        aws_secret_access_key=aws_secret_access_key,
     )
     bucket_name = "ct-scans--use2-az1--x-s3"
     imgs = []

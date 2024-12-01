@@ -12,12 +12,16 @@ if len(input) > 1:
     # start of elapsed time
     start = time.time()
 
+    # secrets
+    aws_access_key_id = st.secrets["general"]["aws_access_key_id"]
+    aws_secret_access_key = st.secrets["general"]["aws_secret_access_key"]
+
     # saves images to s3 bucket
     s3 = boto3.client(
         service_name='s3',
         region_name='us-east-2',
-        aws_access_key_id='AKIAUQ4L3FBTESMORT75',
-        aws_secret_access_key='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',
+        aws_access_key_id=aws_access_key_id,
+        aws_secret_access_key=aws_secret_access_key,
     )
     bucket_name = "ct-scans--use2-az1--x-s3"
     for img in input:
@@ -28,7 +32,7 @@ if len(input) > 1:
     
     # initiating script to generate gifs from CT scans in data
     gifs = []        
-    mean_dice_score, recall, precision, gifs = generate_output()
+    mean_dice_score, recall, precision, gifs = generate_output(aws_access_key_id, aws_secret_access_key)
     f1_score = (2 * recall * precision) / (precision + recall)
     end = time.time()
     total_time = (end - start) / 60
