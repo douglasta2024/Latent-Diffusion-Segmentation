@@ -5,7 +5,7 @@ FOCUS is a streamlit application that serves to make the jobs of medical practit
 ## Repository Contents
  
  ### Directory Tree
-
+'''bash
  └── Project Folder (root directory)/
     ├── .devcontainer folder/
     │   └── devcontainer.json
@@ -31,6 +31,7 @@ FOCUS is a streamlit application that serves to make the jobs of medical practit
     ├── videos folder/
     │   └── FOCUS_demo.mp4
     └── .gitignore
+'''
 
 **Purpose of Each Folder**
 
