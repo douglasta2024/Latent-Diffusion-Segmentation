@@ -7,6 +7,8 @@ FOCUS is a streamlit application that serves to make the jobs of medical practit
  ### Directory Tree
 ```bash
  └── Project Folder (root directory)/
+    ├── .streamlit folder/
+        └── config.toml
     ├── .devcontainer folder/
     │   └── devcontainer.json
     ├── documentation folder/
@@ -40,6 +42,8 @@ FOCUS is a streamlit application that serves to make the jobs of medical practit
 * monitoring was created to store my prometheus folder that contains my prometheus yaml file
 * src was created to contain the actual source code for FOCUS as well as any training notebooks I used for training my model
 * videos folder was created to contain my video demo
+* .streamlit folder contains my secrets and my configurations for streamlit
+* models folder contains my trained model
 
 ## System Entry Point
 
