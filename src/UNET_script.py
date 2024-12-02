@@ -26,7 +26,7 @@ def generate_output(aws_access_key_id, aws_secret_access_key):
     ### GLOBAL VARIABLES
     # ROOT_PATH = os.path.join(os.getcwd(), "main", "src")
     # DATA_PATH = os.path.join(ROOT_PATH, "data")
-    #DEVICE = torch.device("cpu")    
+    DEVICE = torch.device("cpu")    
 
     # defines basemodel
     model = UNet(
@@ -36,8 +36,8 @@ def generate_output(aws_access_key_id, aws_secret_access_key):
         channels=(16, 32, 64, 128, 256),
         strides=(2, 2, 2, 2),
         num_res_units=2,
-    #).to(DEVICE)    
-    )
+    ).to(DEVICE)    
+    
     print("Base Model Loaded In")
 
     # saves images to s3 bucket
@@ -59,15 +59,7 @@ def generate_output(aws_access_key_id, aws_secret_access_key):
             if "model" in file_name:
                 single_response = s3.get_object(Bucket=bucket_name, Key=file_name)
                 model_bytes = BytesIO(single_response['Body'].read())
-                #model_weights = torch.load(model_bytes, weights_only=True, map_location=DEVICE) 
-                
-                @st.cache_resource
-                def load_model():
-                    model_weights = torch.load(model_bytes, weights_only=True) 
-                    return model_weights
-                
-                model_weights = load_model()
-                
+                model_weights = torch.load(model_bytes, weights_only=True, map_location=DEVICE)                 
 
                 # loading model weights onto model
                 model.load_state_dict(model_weights) 
@@ -104,7 +96,7 @@ def generate_output(aws_access_key_id, aws_secret_access_key):
         model.eval()
         with torch.no_grad():
             images, masks = batch
-            #images, masks = images.to(DEVICE), masks.to(DEVICE)
+            images, masks = images.to(DEVICE), masks.to(DEVICE)
 
             outputs = model(images)
 
@@ -148,7 +140,6 @@ def generate_output(aws_access_key_id, aws_secret_access_key):
 
     image_transforms = Compose(
         [
-            #LoadImage(image_only=True, ensure_channel_first=True),\
             ScaleIntensityRange(
                 a_min=amin,
                 a_max=amax,
@@ -166,7 +157,6 @@ def generate_output(aws_access_key_id, aws_secret_access_key):
 
     seg_transforms = Compose(
         [
-            #LoadImage(image_only=True, ensure_channel_first=True),
             Orientation(axcodes="RAS"),
             RandSpatialCrop(
             (512,512,160), 
@@ -204,11 +194,7 @@ def generate_output(aws_access_key_id, aws_secret_access_key):
 
         # Create an animation
         ani = FuncAnimation(fig, update, frames=image.shape[0], interval=300, blit=True)    
-        
-        # saving gif to bucket
-        # file_name = f"mask{idx}.gif"
-        # s3.upload_fileobj(ani, bucket_name, file_name)
-        # print(f"Uploaded {file_name}")
+    
         return ani
 
     print("Initiating GIF Generation")
@@ -228,8 +214,6 @@ def generate_output(aws_access_key_id, aws_secret_access_key):
             gifs.append(gif_buffer)
         os.remove(temp_file.name)
         print(f"Mask {idx} Initialized")
-        #ani.save(os.path.join(ROOT_PATH, f"saved_gifs/mask{idx}.gif"), writer="pillow")
-
 
     return mean_dice_score, recall, precision, gifs
 
